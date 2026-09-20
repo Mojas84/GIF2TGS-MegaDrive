@@ -9,8 +9,5 @@
       "maxDuration": 60,
       "includeFiles": ["scripts/**", "requirements.txt"]
     }
-  },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  }
 }
