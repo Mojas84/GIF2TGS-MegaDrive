@@ -106,7 +106,7 @@ export default function Home() {
     if (!file || state === "converting") return;
     setState("converting"); setMessage("PROCESSING...");
     try {
-      const response = await fetch("/api/convert", { method: "POST", headers: { "Content-Type": "image/gif", "X-File-Name": encodeURIComponent(file.name) }, body: file });
+      const response = await fetch("/api", { method: "POST", headers: { "Content-Type": "image/gif", "X-File-Name": encodeURIComponent(file.name) }, body: file });
       if (!response.ok) { const payload = await response.json().catch(() => ({ error: "CONVERSION ERROR // Převod se nepodařil." })); throw new Error(payload.error); }
       const blob = await response.blob();
       if (outputUrl) URL.revokeObjectURL(outputUrl);
