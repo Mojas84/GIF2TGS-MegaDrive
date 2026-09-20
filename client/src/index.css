@@ -116,3 +116,125 @@ button:focus-visible, a:focus-visible { outline: 2px solid #c8ff3d; outline-offs
   .stat-row b { font-size: 13px; }
   .footer-bar { font-size: 10px; }
 }
+
+
+/* Sega Mega Drive dark polish: depth, CRT atmosphere and restrained motion. */
+.retro-scanlines {
+  background:
+    radial-gradient(ellipse at 78% 18%, rgba(33, 66, 104, .34), transparent 35%),
+    radial-gradient(ellipse at 16% 76%, rgba(8, 54, 79, .24), transparent 38%),
+    linear-gradient(135deg, #05070d 0%, #0a0d16 48%, #070a11 100%);
+}
+.retro-scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .24;
+  background-image:
+    linear-gradient(rgba(91, 142, 194, .09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91, 142, 194, .07) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, transparent 0 42%, rgba(0, 0, 0, .34) 100%);
+  background-size: 48px 48px, 48px 48px, 100% 100%;
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 86%, transparent);
+  animation: grid-drift 18s linear infinite;
+}
+.app-frame { isolation: isolate; }
+.topbar, .footer-bar { position: relative; }
+.topbar::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,255,61,.72), rgba(70, 159, 255, .55), transparent);
+  box-shadow: 0 0 14px rgba(200,255,61,.28);
+  animation: signal-sweep 4s ease-in-out infinite;
+}
+.hero-copy { animation: rise-in .65s cubic-bezier(.23,1,.32,1) both; }
+.converter-wrap { animation: rise-in .75s .08s cubic-bezier(.23,1,.32,1) both; }
+.hero-title { position: relative; text-shadow: 0 0 12px rgba(200,255,61,.2), 0 0 38px rgba(72, 162, 255, .12); }
+.hero-title::after {
+  content: "GIF → TGS";
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: rgba(66, 157, 255, .16);
+  pointer-events: none;
+  transform: translate(2px, 0);
+  animation: title-glitch 5s steps(1, end) infinite;
+}
+.limit-card, .converter-card, .output-card, .diagnostics-card {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.018), 0 16px 46px rgba(0,0,0,.24);
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s cubic-bezier(.23,1,.32,1);
+}
+.limit-card:hover, .output-card:hover, .diagnostics-card:hover {
+  border-color: rgba(200,255,61,.52);
+  box-shadow: inset 0 0 0 1px rgba(200,255,61,.04), 0 18px 50px rgba(0,0,0,.34), 0 0 24px rgba(200,255,61,.07);
+  transform: translateY(-3px);
+}
+.converter-card { border-color: rgba(72, 162, 255, .3); box-shadow: 0 0 0 1px rgba(72,162,255,.06), 0 18px 56px rgba(0,0,0,.4), 0 0 34px rgba(31, 104, 190, .1); }
+.converter-inner { background: linear-gradient(145deg, rgba(20,29,45,.96), rgba(10,15,25,.96)); }
+.converter-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  border: 1px solid transparent;
+  background: linear-gradient(115deg, rgba(200,255,61,.65), transparent 24%, transparent 70%, rgba(72,162,255,.6)) border-box;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: .42;
+}
+.mascot { animation: mascot-float 4.8s ease-in-out infinite; filter: drop-shadow(0 0 12px rgba(23,105,255,.55)) drop-shadow(0 8px 0 rgba(0,0,0,.22)); }
+.drop-zone { background: linear-gradient(135deg, rgba(5,9,17,.8), rgba(15,25,39,.58)); box-shadow: inset 0 0 34px rgba(25, 90, 149, .08); }
+.drop-zone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(110deg, transparent 25%, rgba(200,255,61,.08) 50%, transparent 75%);
+  transform: translateX(-100%);
+  transition: opacity .2s ease;
+}
+.drop-zone:hover::after, .drop-zone:focus-visible::after { opacity: 1; animation: drop-scan .9s ease-out; }
+.drop-zone.has-file { box-shadow: inset 0 0 40px rgba(200,255,61,.08), 0 0 18px rgba(200,255,61,.06); }
+.upload-square { animation: icon-breathe 2.8s ease-in-out infinite; }
+.convert-button { position: relative; overflow: hidden; box-shadow: 0 0 18px rgba(200,255,61,.16); }
+.convert-button::before, .download-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.42) 50%, transparent 70%);
+  transform: translateX(-130%);
+}
+.convert-button:hover:not(:disabled)::before, .download-button:hover::before { animation: button-shine .7s ease-out; }
+.action-row button:active, .download-button:active { transform: scale(.965); }
+.progress-console svg { animation: icon-breathe 1.2s ease-in-out infinite; }
+.progress-bar { box-shadow: 0 0 10px rgba(200,255,61,.2); }
+.telegram-status.ready { box-shadow: inset 0 0 16px rgba(200,255,61,.07), 0 0 16px rgba(200,255,61,.05); animation: ready-pulse 2.4s ease-in-out infinite; }
+.footer-bar { text-shadow: 0 0 10px rgba(72,162,255,.15); }
+
+@keyframes grid-drift { from { background-position: 0 0, 0 0, 0 0; } to { background-position: 48px 48px, 48px 48px, 0 0; } }
+@keyframes signal-sweep { 0%, 100% { opacity: .35; transform: scaleX(.55); transform-origin: left; } 50% { opacity: 1; transform: scaleX(1); transform-origin: center; } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mascot-float { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-9px) rotate(1deg); } }
+@keyframes title-glitch { 0%, 87%, 100% { clip-path: inset(0 0 0 0); opacity: 0; } 88% { clip-path: inset(18% 0 62% 0); opacity: .9; transform: translate(4px, -1px); } 90% { clip-path: inset(70% 0 8% 0); opacity: .65; transform: translate(-3px, 1px); } 92% { opacity: 0; } }
+@keyframes drop-scan { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes button-shine { from { transform: translateX(-130%); } to { transform: translateX(130%); } }
+@keyframes icon-breathe { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.22); } }
+@keyframes ready-pulse { 0%, 100% { border-color: rgba(200,255,61,.25); } 50% { border-color: rgba(200,255,61,.58); } }
+
+@media (max-width: 639px) {
+  .retro-scanlines::after { background-size: 32px 32px, 32px 32px, 100% 100%; }
+  .hero-title::after { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy, .converter-wrap { animation: none; }
+  .hero-title::after, .mascot, .upload-square, .progress-console svg, .telegram-status.ready { animation: none; }
+}
+
+.converter-card, .drop-zone, .download-button { position: relative; }
