@@ -8,24 +8,18 @@ import App from "./App";
 import { startLogin } from "./const";
 import "./index.css";
 
-
 const queryClient = new QueryClient();
-
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
 
-
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
-
 
   if (!isUnauthorized) return;
 
-
   startLogin();
 };
-
 
 queryClient.getQueryCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
@@ -35,7 +29,6 @@ queryClient.getQueryCache().subscribe(event => {
   }
 });
 
-
 queryClient.getMutationCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.mutation.state.error;
@@ -43,7 +36,6 @@ queryClient.getMutationCache().subscribe(event => {
     console.error("[API Mutation Error]", error);
   }
 });
-
 
 const trpcClient = trpc.createClient({
   links: [
@@ -76,3 +68,14 @@ const trpcClient = trpc.createClient({
           credentials: "include",
         });
       },
+    }),
+  ],
+});
+
+createRoot(document.getElementById("root")!).render(
+  <trpc.Provider client={trpcClient} queryClient={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
+  </trpc.Provider>
+);
