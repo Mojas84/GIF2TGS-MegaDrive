@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: gif2tgs
+    runtime: docker
+    plan: free
+    branch: main
+    healthCheckPath: /health
+    autoDeploy: true
