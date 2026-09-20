@@ -4,6 +4,7 @@ import { Activity, CheckCircle2, Download, Gamepad2, Play, RotateCcw, UploadClou
 
 type ConvertState = "idle" | "ready" | "converting" | "success" | "error";
 const MAX_INPUT_BYTES = 8 * 1024 * 1024;
+const SUPABASE_FUNCTION_URL = "https://ruffononhafqhxqwurhq.supabase.co/functions/v1/gif-to-tgs";
 
 type TgsMeta = { size: number; frames: number; fps: number; duration: number; width: number; height: number };
 
@@ -106,7 +107,7 @@ export default function Home() {
     if (!file || state === "converting") return;
     setState("converting"); setMessage("PROCESSING...");
     try {
-      const response = await fetch("/api/convert", { method: "POST", headers: { "Content-Type": "image/gif", "X-File-Name": encodeURIComponent(file.name) }, body: file });
+      const response = await fetch(SUPABASE_FUNCTION_URL, { method: "POST", headers: { "Content-Type": "image/gif", "X-File-Name": encodeURIComponent(file.name) }, body: file });
       if (!response.ok) { const payload = await response.json().catch(() => ({ error: "CONVERSION ERROR // Převod se nepodařil." })); throw new Error(payload.error); }
       const blob = await response.blob();
       if (outputUrl) URL.revokeObjectURL(outputUrl);
@@ -133,7 +134,7 @@ export default function Home() {
           </label><div className="action-row"><button className="convert-button" disabled={!isReady} onClick={convert}><Play size={13} fill="currentColor" /> {state === "converting" ? "PROCESSING..." : "START CONVERSION"}</button><button className="reset-button" onClick={reset} aria-label="Reset converter"><RotateCcw size={13} /> RESET</button></div><div className={`progress-console state-${state}`} aria-live="polite"><Activity size={13} /><span>{message || "SEGA MODE // PIXELART2TGS ENGINE // TEMP FILES PURGED"}</span></div>{state === "converting" && <div className="progress-bar"><span /></div>}{state === "error" && message && <div className="error-panel"><XCircle size={16} /><span>{message}</span></div>}
         </div>
         {state === "success" && outputUrl && meta && <div className="results-grid"><section className="output-card"><div className="result-kicker">[ 02 / TGS OUTPUT ]</div><h3>PREVIEW PLAYER</h3><div className="tgs-preview-frame"><TgsPreview url={outputUrl} /><span>TGS DATA // GZIP LOTTIE PLAYER</span></div><div className="output-footer"><div><strong>{outputName}</strong><small>{formatBytes(meta.size)} // GZIP TGS</small></div><a className="download-button" href={outputUrl} download={outputName}><Download size={14} /> SAVE</a></div></section><aside className="diagnostics-card"><div className="result-kicker">[ 03 / DIAGNOSTICS ]</div><h3>TELEGRAM LIMIT CHECK</h3><div className={`telegram-status ${readyChecks ? "ready" : "warn"}`}>STATUS: {readyChecks ? "TELEGRAM READY" : "OPTIMIZATION ADVISED"}</div><div className="checks"><CheckRow ok={meta.size <= 64 * 1024} label="Komprimovaná velikost" value={formatBytes(meta.size)} hint="LIMIT ≤ 64 KB" /><CheckRow ok={meta.duration <= 3} label="Délka animace" value={`${meta.duration.toFixed(2)} s`} hint="LIMIT ≤ 3 s" /><CheckRow ok={meta.width === 512 && meta.height === 512} label="Plátno" value={`${meta.width} × ${meta.height}`} hint="LIMIT 512 × 512 px" /></div><div className="stat-row"><span><b>{meta.frames}</b>frames</span><span><b>{meta.fps}</b>fps</span><span><b>{meta.duration.toFixed(2)}s</b>duration</span></div></aside></div>}
-        </section></main><footer className="footer-bar"><span>SEGA MODE // PIXELART2TGS ENGINE // TEMP FILES PURGED</span><span>© TGS_CONSOLE 199X–2026</span></footer>
+        </section></main><footer className="footer-bar"><span>SEGA MODE // SUPABASE EDGE ENGINE // TEMP FILES PURGED</span><span>© TGS_CONSOLE 199X–2026</span></footer>
     </div>
   );
 }
