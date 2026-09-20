@@ -6,8 +6,7 @@
   "framework": null,
   "functions": {
     "api/convert.py": {
-      "maxDuration": 60,
-      "includeFiles": ["scripts/**", "requirements.txt"]
+      "maxDuration": 60
     }
   }
 }
