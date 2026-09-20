@@ -1,0 +1,68 @@
+Metadata-Version: 2.1
+Name: pixelart2tgs
+Version: 1.0.1
+Summary: Simple .gif to .tgs converter cli utility
+Author-email: sliva0 <sliva0mk@gmail.com>
+License: MIT License
+Project-URL: Homepage, https://github.com/sliva0/pixelart2tgs
+Project-URL: Author's telegram, https://t.me/sliva0
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+Requires-Dist: numpy (>=1.22.4)
+Requires-Dist: Pillow (>=9.1.1)
+Requires-Dist: scipy (>=1.8.1)
+
+# pixelart2tgs
+
+Simple .gif to .tgs converter cli utility.
+
+![Source GIF](https://github.com/sliva0/pixelart2tgs/raw/master/images/ralsei.gif)
+![Tg demonstation](https://github.com/sliva0/pixelart2tgs/raw/master/images/tg.gif)
+
+
+## Warning
+
+After [update of Telegram with the addition of video stickers][UPD], this project lost all practical meaning. If you need to make animated stickers from GIFs after January 2022, use `ffmpeg`.
+
+[UPD]: https://telegram.org/blog/video-stickers-better-reactions
+
+
+## Some not so user friendly alternatives
+
+ - [MattBas's lottie](https://pypi.org/project/lottie/)
+ - [bodqhrohro's giftolottie](https://github.com/bodqhrohro/giftolottie)
+
+
+## Installation
+
+``` console
+python -m pip install pixelart2tgs
+```
+
+and then usage:
+
+``` console
+python -m pixelart2tgs
+```
+
+
+## Usage examples
+
+``` console
+$ pixelart2tgs -i input.gif
+input.gif -> input.tgs
+```
+
+``` console
+$ pixelart2tgs -i first.gif -i second.gif sticker.tgs -y
+first.gif -> first.tgs
+second.gif -> "sticker.tgs
+```
+
+## License
+
+[MIT License](LICENSE.txt)

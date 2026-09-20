@@ -3,7 +3,7 @@ import express from "express";
 import { createServer } from "http";
 import net from "net";
 import path from "path";
-import { promises as fs } from "fs";
+import { existsSync, promises as fs } from "fs";
 import { randomUUID } from "crypto";
 import { spawn } from "child_process";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -31,16 +31,26 @@ async function findAvailablePort(startPort = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
+function resolvePythonBinary() {
+  const candidates = [
+    process.env.PYTHON_BIN,
+    path.join(ROOT, ".venv", "bin", "python"),
+    "/opt/venv/bin/python",
+    "python3",
+  ].filter(Boolean) as string[];
+  return candidates.find(candidate => candidate === "python3" || existsSync(candidate)) ?? "python3";
+}
+
 function runConverter(inputPath: string, outputPath: string) {
   return new Promise<void>((resolve, reject) => {
-    const pythonBinary = process.env.PYTHON_BIN || "python3";
+    const pythonBinary = resolvePythonBinary();
     const child = spawn(pythonBinary, ["-m", "pixelart2tgs", "-i", inputPath, outputPath, "-y"], {
       cwd: ROOT,
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stderr = "";
     child.stderr.on("data", chunk => { stderr += chunk.toString(); });
-    child.on("error", reject);
+    child.on("error", error => reject(new Error(`Python converter could not start (${pythonBinary}): ${error.message}`)));
     child.on("close", code => {
       if (code === 0) resolve();
       else reject(new Error(stderr.trim() || `Converter exited with code ${code ?? "unknown"}.`));
@@ -72,7 +82,10 @@ async function convertGif(req: express.Request, res: express.Response) {
     return res.status(200).send(output);
   } catch (error) {
     const detail = error instanceof Error ? error.message : "Unknown converter error.";
-    return res.status(422).json({ error: detail.replace(/^File reading error:\s*/i, "GIF could not be read: ") });
+    const errorMessage = /No module named ['"]pixelart2tgs['"]/.test(detail)
+      ? "Python converter is not installed. Run `pip install -r requirements.txt` locally or deploy this project with its Dockerfile on Render."
+      : detail.replace(/^File reading error:\s*/i, "GIF could not be read: ");
+    return res.status(422).json({ error: errorMessage });
   } finally {
     await Promise.allSettled([fs.unlink(inputPath), fs.unlink(outputPath)]);
   }

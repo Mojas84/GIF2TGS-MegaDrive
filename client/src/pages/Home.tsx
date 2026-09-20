@@ -124,7 +124,7 @@ export default function Home() {
             <div className="section-kicker"><span>[ 01 / LOAD GIF ]</span><b>2</b></div>
             <h3>INSERT ANIMATION</h3>
             <label className={`drop-zone ${state === "error" ? "drop-error" : ""} ${file ? "has-file" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={onDrop}>
-              <input ref={inputRef} type="file" accept="image/gif,.gif" onChange={onInputChange} />
+              <input ref={inputRef} className="file-input" aria-label="Choose GIF file" title="Choose GIF file" type="file" accept="image/gif,.gif" onChange={onInputChange} />
               <div className="upload-square"><UploadCloud size={24} /></div>
               {file ? (
                 <>
