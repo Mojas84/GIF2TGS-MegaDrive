@@ -12,7 +12,7 @@ button:focus-visible, label:focus-within, a:focus-visible { outline: 2px solid #
 
 .console-shell { position: relative; min-height: 100vh; isolation: isolate; overflow: hidden; background: radial-gradient(circle at 72% 42%, rgba(33, 42, 48, .35), transparent 32%), #090c0f; }
 .console-shell::before { content: ""; position: absolute; inset: 0; z-index: -2; opacity: .18; background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px); background-size: 4px 4px, 4px 4px; pointer-events: none; }
-.console-shell::after { content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; border: 2px solid #ec1429; clip-path: polygon(0 0, 48% 0, 48% 3px, 100% 3px, 100% 100%, 88% 100%, 88% calc(100% - 3px), 0 calc(100% - 3px)); opacity: .95; }
+.console-shell::after { content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; border: 1px solid rgba(217,255,0,.18); }
 .scanlines { position: absolute; inset: 0; z-index: 4; pointer-events: none; opacity: .08; background: repeating-linear-gradient(0deg, transparent 0, transparent 3px, rgba(255,255,255,.13) 4px); mix-blend-mode: screen; }
 
 .topbar { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; min-height: 75px; padding: 0 3.25vw; border-bottom: 1px solid rgba(124, 145, 148, .17); }

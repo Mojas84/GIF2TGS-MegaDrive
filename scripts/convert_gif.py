@@ -23,7 +23,19 @@ def normalize_frame_times(value):
     return value
 
 
+def normalize_integer_floats(value):
+    if isinstance(value, dict):
+        return {key: normalize_integer_floats(child) for key, child in value.items()}
+    if isinstance(value, list):
+        return [normalize_integer_floats(child) for child in value]
+    if isinstance(value, Number) and not isinstance(value, bool) and float(value).is_integer():
+        return int(value)
+    return value
+
+
 def static_property(value, default):
+    if value is None:
+        return {"a": 0, "k": default}
     if not isinstance(value, dict):
         return value
     value.setdefault("a", 0)
@@ -32,9 +44,23 @@ def static_property(value, default):
 
 
 def add_z(value, default=0):
-    if isinstance(value, dict) and isinstance(value.get("k"), list) and len(value["k"]) == 2:
-        value["k"].append(default)
+    if isinstance(value, dict):
+        try:
+            vector = list(value["k"])
+        except (KeyError, TypeError):
+            vector = None
+        if vector is not None and len(vector) == 2:
+            value["k"] = vector + [default]
     return value
+
+
+def normalize_tangent(point):
+    try:
+        if len(point) == 0:
+            return [0, 0]
+        return list(point) if not isinstance(point, list) else point
+    except TypeError:
+        return [0, 0]
 
 
 def enrich_original_lottie_defaults(animation):
@@ -55,18 +81,28 @@ def enrich_original_lottie_defaults(animation):
             for item in shape_group.get("it", []):
                 kind = item.get("ty")
                 if kind == "sh":
-                    static_property(item.setdefault("ks", {}), None)
+                    shape_property = item.setdefault("ks", {})
+                    static_property(shape_property, None)
+                    points = shape_property.get("k")
+                    if isinstance(points, dict):
+                        for key in ("i", "o"):
+                            values = points.get(key)
+                            try:
+                                points[key] = [normalize_tangent(point) for point in list(values)]
+                            except TypeError:
+                                pass
                 elif kind == "st":
-                    static_property(item.get("c"), [0, 0, 0])
-                    static_property(item.get("o"), 100)
-                    static_property(item.get("w"), 0)
+                    item["c"] = static_property(item.get("c"), [0, 0, 0])
+                    item["o"] = static_property(item.get("o"), 100)
+                    item["w"] = static_property(item.get("w"), 0)
                 elif kind == "fl":
-                    static_property(item.get("c"), [0, 0, 0])
-                    static_property(item.get("o"), 100)
+                    item["c"] = static_property(item.get("c"), [1, 1, 1])
+                    item["o"] = static_property(item.get("o"), 100)
                 elif kind == "tr":
-                    static_property(item.setdefault("a", {}), [0, 0])
-                    static_property(item.setdefault("s", {}), [100, 100])
-                    static_property(item.setdefault("r", {}), 0)
+                    item["a"] = static_property(item.setdefault("a", {}), [0, 0])
+                    item["s"] = static_property(item.setdefault("s", {}), [100, 100])
+                    item["r"] = static_property(item.setdefault("r", {}), 0)
+                    item["o"] = static_property(item.get("o"), 100)
     return animation
 
 
@@ -75,6 +111,7 @@ def convert(input_path: Path, output_path: Path) -> None:
     animation = generate_lottie((durations, frames), "SEGA TGS STUDIO")
     animation = normalize_frame_times(animation)
     animation = enrich_original_lottie_defaults(animation)
+    animation = normalize_integer_floats(animation)
     animation["fr"] = 60
     animation["ip"] = 0
     animation["op"] = max(1, int(math.ceil(float(animation.get("op", 1)))))
