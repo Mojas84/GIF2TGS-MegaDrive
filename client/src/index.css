@@ -80,3 +80,39 @@ button:focus-visible, a:focus-visible { outline: 2px solid #c8ff3d; outline-offs
 @media (max-width: 480px) { .brand-edition { font-size: 7px; }.hero-description { font-size: 14px; }.converter-card { padding: 8px; }.converter-inner { padding: 12px; }.drop-zone { min-height: 190px; }.mascot { display: none; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 .retro-box { border: 1px solid rgba(200,255,61,.25); box-shadow: 0 0 18px rgba(200,255,61,.04); }
+
+/* Large-screen match to the supplied Manus success-state reference. */
+@media (min-width: 1024px) {
+  .retro-scanlines { background: radial-gradient(ellipse at 70% 28%, rgba(28,45,58,.24), transparent 46%), #080a10; }
+  .retro-scanlines::before { opacity: .3; background-image: repeating-linear-gradient(0deg, transparent 0, transparent 4px, rgba(255,255,255,.055) 5px), linear-gradient(90deg, transparent 0 49.8%, rgba(200,255,61,.025) 50%, transparent 50.2%); background-size: auto, 7px 7px; }
+  .hero-title { font-size: clamp(4.2rem, 6.2vw, 7.4rem); }
+  .hero-subtitle { font-size: .42em; }
+  .hero-description { max-width: 34rem; font-size: 18px; line-height: 1.75; }
+  .limit-grid { max-width: 34rem; font-size: 11px; }
+  .limit-card { min-height: 74px; padding: 14px; }
+  .converter-card { padding: 16px; }
+  .converter-inner { padding: 20px 22px 22px; }
+  .card-heading { margin-bottom: 24px; }
+  .card-heading p { font-size: 12px; }
+  .card-heading h2 { font-size: 29px; }
+  .mascot { top: -116px; right: -36px; height: 238px; }
+  .drop-zone { min-height: 300px; }
+  .drop-title { font-size: 23px; }
+  .drop-caption { font-size: 11px; }
+  .action-row { margin-top: 18px; }
+  .convert-button { padding: 16px 22px; font-size: 13px; }
+  .reset-button { padding: 14px 18px; font-size: 11px; }
+  .results-grid { gap: 14px; margin-top: 14px; }
+  .output-card, .diagnostics-card { padding: 20px; }
+  .result-kicker { font-size: 11px; }
+  .output-card h3, .diagnostics-card h3 { font-size: 20px; }
+  .tgs-preview-frame { min-height: 310px; }
+  .tgs-player { width: 290px; height: 290px; }
+  .telegram-status { font-size: 10px; }
+  .check-row strong { font-size: 11px; }
+  .check-row small { font-size: 8px; }
+  .check-row > b { font-size: 10px; }
+  .stat-row { font-size: 8px; }
+  .stat-row b { font-size: 13px; }
+  .footer-bar { font-size: 10px; }
+}
