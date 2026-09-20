@@ -238,3 +238,55 @@ button:focus-visible, a:focus-visible { outline: 2px solid #c8ff3d; outline-offs
 }
 
 .converter-card, .drop-zone, .download-button { position: relative; }
+
+
+/* Authentic 16-bit typography layer. */
+:root {
+  --pixel-display: "Pixelify Sans", "Space Grotesk", sans-serif;
+  --pixel-ui: "Press Start 2P", "DM Mono", monospace;
+}
+.hero-title, .card-heading h2, .output-card h3, .diagnostics-card h3, .drop-title {
+  font-family: var(--pixel-display);
+  font-weight: 700;
+  letter-spacing: .015em;
+  text-rendering: geometricPrecision;
+}
+.hero-title { letter-spacing: .01em; line-height: .92; }
+.hero-subtitle { letter-spacing: .045em; }
+.brand-name, .brand-edition, .eyebrow, .card-heading p, .limit-grid, .file-line strong, .file-line span,
+.convert-button, .reset-button, .progress-console, .error-panel, .result-kicker, .telegram-status,
+.check-row small, .check-row > b, .stat-row, .footer-bar, .download-button {
+  font-family: var(--pixel-ui);
+  font-weight: 400;
+  letter-spacing: .04em;
+}
+.brand-name { font-size: 11px; letter-spacing: .12em; }
+.brand-edition, .eyebrow, .footer-bar { font-size: 9px; letter-spacing: .12em; }
+.hero-description, .check-row strong { font-family: "Pixelify Sans", "DM Sans", sans-serif; }
+.hero-description { font-size: 18px; line-height: 1.55; letter-spacing: .025em; }
+.card-heading p, .result-kicker { font-size: 10px; letter-spacing: .08em; }
+.card-heading h2 { font-size: clamp(1.55rem, 2.5vw, 2.3rem); }
+.drop-title { font-size: clamp(1.1rem, 1.8vw, 1.5rem); letter-spacing: .04em; }
+.drop-caption, .file-line span, .progress-console, .error-panel, .telegram-status { font-size: 9px; letter-spacing: .05em; }
+.limit-grid { font-size: 9px; }
+.limit-card span { font-family: var(--pixel-ui); }
+.convert-button, .reset-button, .download-button { font-size: 10px; letter-spacing: .06em; }
+.output-card h3, .diagnostics-card h3 { letter-spacing: .02em; }
+.check-row strong { font-size: 13px; letter-spacing: .015em; }
+.check-row small, .check-row > b, .stat-row { font-size: 8px; }
+.stat-row b { font-family: var(--pixel-display); }
+
+@media (min-width: 1024px) {
+  .hero-title { font-size: clamp(4.1rem, 6vw, 7rem); }
+  .hero-description { font-size: 20px; }
+  .card-heading p, .result-kicker { font-size: 11px; }
+  .card-heading h2 { font-size: 2.45rem; }
+  .drop-title { font-size: 1.7rem; }
+  .check-row strong { font-size: 14px; }
+}
+@media (max-width: 639px) {
+  .hero-description { font-size: 16px; }
+  .brand-name { font-size: 9px; }
+  .card-heading h2 { font-size: 1.4rem; }
+  .drop-title { font-size: 1rem; }
+}
