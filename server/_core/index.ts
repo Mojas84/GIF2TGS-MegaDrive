@@ -44,7 +44,8 @@ function resolvePythonBinary() {
 function runConverter(inputPath: string, outputPath: string) {
   return new Promise<void>((resolve, reject) => {
     const pythonBinary = resolvePythonBinary();
-    const child = spawn(pythonBinary, ["-m", "pixelart2tgs", "-i", inputPath, outputPath, "-y"], {
+    const converterScript = path.join(ROOT, "scripts", "convert_gif.py");
+    const child = spawn(pythonBinary, [converterScript, inputPath, outputPath], {
       cwd: ROOT,
       stdio: ["ignore", "pipe", "pipe"],
     });
