@@ -6,7 +6,7 @@
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": null,
   "functions": {
-    "api/**/*.py": {
+    "api/index.py": {
       "maxDuration": 60
     }
   }
