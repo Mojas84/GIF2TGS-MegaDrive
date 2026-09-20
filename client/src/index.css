@@ -378,3 +378,18 @@ button:focus-visible, a:focus-visible { outline: 2px solid #c8ff3d; outline-offs
 @media (prefers-reduced-motion: reduce) {
   .action-row button, .download-button { transition: none; }
 }
+
+
+/* Modern display typography for the prominent product copy; pixel type stays in compact UI labels. */
+.hero-title, .hero-subtitle, .card-heading h2, .output-card h3, .diagnostics-card h3, .drop-title {
+  font-family: "Space Grotesk", "DM Sans", sans-serif;
+  font-synthesis: none;
+  font-weight: 700;
+  letter-spacing: -.045em;
+  line-height: .92;
+}
+.hero-title { text-transform: uppercase; }
+.hero-subtitle { letter-spacing: -.025em; }
+.card-heading h2, .output-card h3, .diagnostics-card h3 { letter-spacing: -.035em; }
+.drop-title { letter-spacing: -.02em; }
+.hero-description { font-family: "DM Sans", sans-serif; }
