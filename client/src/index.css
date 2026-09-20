@@ -52,20 +52,3 @@ h2 { margin: 0; color: #c8d0cc; font-family: Impact, "Arial Narrow", sans-serif;
 
 @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; gap: 28px; min-height: auto; padding-top: 48px; padding-bottom: 86px; }.hero-copy { max-width: 620px; margin: 0 auto; width: 100%; }.converter-wrap { max-width: 650px; width: 100%; margin: 0 auto; }.mascot { right: 3%; }.footer-bar { position: relative; right: auto; bottom: auto; left: auto; margin: 0 4vw 22px; } }
 @media (max-width: 560px) { .topbar { min-height: 62px; padding: 0 18px; }.system-status { padding: 6px 8px; font-size: 6px; }.hero-grid { padding: 38px 18px 48px; }.converter-card { padding: 26px 15px 14px; }.section-kicker b { margin-right: 0; }.mascot { top: -26px; width: 82px; }.drop-zone { min-height: 145px; }.footer-bar { flex-direction: column; gap: 7px; margin: 0 18px 18px; font-size: 6px; }.hero-description { font-size: 12px; } .results-grid { grid-template-columns: 1fr; } }
-
-
-/* Original Manus layout restoration: wider desktop grid and larger drop zone. */
-@media (min-width: 901px) {
-  .hero-grid {
-    grid-template-columns: .78fr 1.22fr;
-    gap: 40px;
-    max-width: 1500px;
-    min-height: calc(100vh - 125px);
-    padding: 5vh 40px 9vh;
-  }
-  .hero-copy { padding-left: 0; }
-  h1 { font-size: clamp(40px, 5.2vw, 86px); }
-  h2 { font-size: clamp(18px, 2vw, 28px); }
-  .drop-zone { min-height: 220px; }
-}
-.progress-console.state-idle { display: none; }
