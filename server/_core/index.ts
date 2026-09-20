@@ -6,6 +6,7 @@ import path from "path";
 import { existsSync, promises as fs } from "fs";
 import { randomUUID } from "crypto";
 import { spawn } from "child_process";
+import { gunzipSync } from "zlib";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
@@ -80,6 +81,14 @@ async function convertGif(req: express.Request, res: express.Response) {
     res.setHeader("Content-Disposition", `attachment; filename="${outputName}"`);
     res.setHeader("X-TGS-Size", String(stat.size));
     const output = await fs.readFile(outputPath);
+    const lottie = JSON.parse(gunzipSync(output).toString("utf8")) as { fr?: number; ip?: number; op?: number; w?: number; h?: number };
+    const fps = Number(lottie.fr || 60);
+    const frames = Math.max(1, Math.round(Number(lottie.op || 0) - Number(lottie.ip || 0)));
+    res.setHeader("X-TGS-FPS", String(fps));
+    res.setHeader("X-TGS-Frames", String(frames));
+    res.setHeader("X-TGS-Duration", (frames / fps).toFixed(2));
+    res.setHeader("X-TGS-Width", String(lottie.w || 512));
+    res.setHeader("X-TGS-Height", String(lottie.h || 512));
     return res.status(200).send(output);
   } catch (error) {
     const detail = error instanceof Error ? error.message : "Unknown converter error.";
