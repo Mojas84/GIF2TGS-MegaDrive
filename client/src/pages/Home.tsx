@@ -7,6 +7,41 @@ const MAX_INPUT_BYTES = 8 * 1024 * 1024;
 
 type TgsMeta = { size: number; frames: number; fps: number; duration: number; width: number; height: number };
 
+type SfxKind = "select" | "confirm" | "cancel" | "drop";
+let sfxContext: AudioContext | null = null;
+
+function playSfx(kind: SfxKind) {
+  if (typeof window === "undefined") return;
+  try {
+    sfxContext ??= new AudioContext();
+    const context = sfxContext;
+    if (context.state === "suspended") void context.resume();
+    const patterns: Record<SfxKind, { notes: number[]; wave: OscillatorType; step: number; length: number }> = {
+      select: { notes: [392, 659], wave: "square", step: 0.045, length: 0.06 },
+      confirm: { notes: [523, 659, 784], wave: "square", step: 0.055, length: 0.075 },
+      cancel: { notes: [294, 220], wave: "sawtooth", step: 0.08, length: 0.11 },
+      drop: { notes: [196, 262, 330], wave: "triangle", step: 0.06, length: 0.09 },
+    };
+    const pattern = patterns[kind];
+    const now = context.currentTime;
+    pattern.notes.forEach((frequency, index) => {
+      const start = now + index * pattern.step;
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = pattern.wave;
+      oscillator.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(kind === "cancel" ? 0.045 : 0.065, start + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + pattern.length);
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.start(start);
+      oscillator.stop(start + pattern.length + 0.015);
+    });
+  } catch {
+    // SFX are progressive enhancement; the converter must work without audio support.
+  }
+}
+
 function formatBytes(bytes: number) {
   return bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 }
@@ -129,8 +164,8 @@ export default function Home() {
         <header className="topbar"><div className="brand-lockup"><div className="brand-icon"><Gamepad2 size={20} /></div><div><div className="brand-name">TGS<span className="brand-accent">_</span>CONSOLE</div><div className="brand-edition">SEGA MODE / 199X EDITION</div></div></div><div className="system-status"><span className="status-dot" /> system online</div></header>
         <section className="hero-grid">
           <div className="hero-copy"><div className="eyebrow"><span /> mega drive utility</div><h1 className="hero-title"><span className="acid">GIF</span> <span className="arrow">→ TGS</span><br /><span className="hero-subtitle">MEGA DRIVE CONVERTER</span></h1><p className="hero-description">Nahraj animaci, sleduj její převod a získej Telegram sticker s kontrolou limitů v reálném čase. Bez účtu. Bez cloudu. Bez magie.</p><div className="limit-grid"><div className="limit-card"><span>01</span>64 KB<br />TGS MAX</div><div className="limit-card"><span>02</span>3 SEC<br />LOOP MAX</div><div className="limit-card"><span>03</span>512 PX<br />CANVAS</div></div></div>
-          <div className="converter-wrap"><img className="mascot" src="/mascot.png" alt="Retro blue speed hero holding a Mega Drive gamepad" /><div className="converter-card"><div className="converter-inner"><div className="card-heading"><div><p>[ 01 / LOAD GIF ]</p><h2>INSERT ANIMATION</h2></div><Cpu className="cpu-icon" size={20} /></div><button type="button" className={`drop-zone ${state === "error" ? "drop-error" : ""} ${file ? "has-file" : ""}`} onClick={() => inputRef.current?.click()} onDragOver={event => event.preventDefault()} onDrop={onDrop}>{file ? <div className="gif-preview"><img src={fileUrl} alt="Náhled GIFu" /><div className="file-line"><div><strong>{file.name}</strong><span>{formatBytes(file.size)} // INPUT GIF // MAX 8 MB</span></div><span className="remove-file" onClick={event => { event.stopPropagation(); reset(); }} aria-label="Odebrat GIF"><X size={15} /></span></div></div> : <><span className="upload-square"><UploadCloud size={24} /></span><span className="drop-title">DROP GIF HERE</span><span className="drop-caption">GIF ONLY // MAX INPUT 8 MB</span></>}</button><input ref={inputRef} className="hidden-input" aria-label="Choose GIF file" type="file" accept="image/gif,.gif" onChange={onInputChange} /><div className="action-row"><button className="convert-button" disabled={!isReady} onClick={convert}><Play size={16} fill="currentColor" /> {state === "converting" ? "PROCESSING..." : "START CONVERSION"}</button><button className="reset-button" onClick={reset} aria-label="Reset converter"><RotateCcw size={14} /> reset</button></div>{state !== "idle" && <div className={`progress-console state-${state}`} aria-live="polite"><Activity size={13} /><span>{message || "SEGA MODE // PIXELART2TGS ENGINE // TEMP FILES PURGED"}</span></div>}{state === "converting" && <div className="progress-bar"><span /></div>}{state === "error" && message && <div className="error-panel"><XCircle size={16} /><span>{message}</span></div>}</div></div>
-          {state === "success" && outputUrl && meta && <div className="results-grid"><section className="output-card"><div className="result-kicker">[ 02 / TGS OUTPUT ]</div><h3>PREVIEW PLAYER</h3><div className="tgs-preview-frame"><TgsPreview url={outputUrl} /><span>TGS DATA // GZIP LOTTIE PLAYER</span></div><div className="output-footer"><div><strong>{outputName}</strong><small>{formatBytes(meta.size)} // GZIP TGS</small></div><a className="download-button" href={outputUrl} download={outputName}><Download size={14} /> SAVE</a></div></section><aside className="diagnostics-card"><div className="result-kicker">[ 03 / DIAGNOSTICS ]</div><h3>TELEGRAM LIMIT CHECK</h3><div className={`telegram-status ${readyChecks ? "ready" : "warn"}`}>STATUS: {readyChecks ? "TELEGRAM READY" : "OPTIMIZATION ADVISED"}</div><div className="checks"><CheckRow ok={meta.size <= 64 * 1024} label="Komprimovaná velikost" value={formatBytes(meta.size)} hint="LIMIT ≤ 64 KB" /><CheckRow ok={meta.duration <= 3} label="Délka animace" value={`${meta.duration.toFixed(2)} s`} hint="LIMIT ≤ 3 s" /><CheckRow ok={meta.width === 512 && meta.height === 512} label="Plátno" value={`${meta.width} × ${meta.height}`} hint="LIMIT 512 × 512 px" /></div><div className="stat-row"><span><b>{meta.frames}</b>frames</span><span><b>{meta.fps}</b>fps</span><span><b>{meta.duration.toFixed(2)}s</b>duration</span></div></aside></div>}
+          <div className="converter-wrap"><img className="mascot" src="/mascot.png" alt="Retro blue speed hero holding a Mega Drive gamepad" /><div className="converter-card"><div className="converter-inner"><div className="card-heading"><div><p>[ 01 / LOAD GIF ]</p><h2>INSERT ANIMATION</h2></div><Cpu className="cpu-icon" size={20} /></div><button type="button" className={`drop-zone ${state === "error" ? "drop-error" : ""} ${file ? "has-file" : ""}`} onClick={() => { playSfx("select"); inputRef.current?.click(); }} onDragOver={event => event.preventDefault()} onDrop={onDrop}>{file ? <div className="gif-preview"><img src={fileUrl} alt="Náhled GIFu" /><div className="file-line"><div><strong>{file.name}</strong><span>{formatBytes(file.size)} // INPUT GIF // MAX 8 MB</span></div><span className="remove-file" onClick={event => { event.stopPropagation(); playSfx("cancel"); reset(); }} aria-label="Odebrat GIF"><X size={15} /></span></div></div> : <><span className="upload-square"><UploadCloud size={24} /></span><span className="drop-title">DROP GIF HERE</span><span className="drop-caption">GIF ONLY // MAX INPUT 8 MB</span></>}</button><input ref={inputRef} className="hidden-input" aria-label="Choose GIF file" type="file" accept="image/gif,.gif" onChange={onInputChange} /><div className="action-row"><button className="convert-button" disabled={!isReady} onClick={() => { playSfx("confirm"); void convert(); }}><Play size={16} fill="currentColor" /> {state === "converting" ? "PROCESSING..." : "START CONVERSION"}</button><button className="reset-button" onClick={() => { playSfx("cancel"); reset(); }} aria-label="Reset converter"><RotateCcw size={14} /> reset</button></div>{state !== "idle" && <div className={`progress-console state-${state}`} aria-live="polite"><Activity size={13} /><span>{message || "SEGA MODE // PIXELART2TGS ENGINE // TEMP FILES PURGED"}</span></div>}{state === "converting" && <div className="progress-bar"><span /></div>}{state === "error" && message && <div className="error-panel"><XCircle size={16} /><span>{message}</span></div>}</div></div>
+          {state === "success" && outputUrl && meta && <div className="results-grid"><section className="output-card"><div className="result-kicker">[ 02 / TGS OUTPUT ]</div><h3>PREVIEW PLAYER</h3><div className="tgs-preview-frame"><TgsPreview url={outputUrl} /><span>TGS DATA // GZIP LOTTIE PLAYER</span></div><div className="output-footer"><div><strong>{outputName}</strong><small>{formatBytes(meta.size)} // GZIP TGS</small></div><a className="download-button" href={outputUrl} download={outputName} onClick={() => playSfx("confirm")}><Download size={14} /> SAVE</a></div></section><aside className="diagnostics-card"><div className="result-kicker">[ 03 / DIAGNOSTICS ]</div><h3>TELEGRAM LIMIT CHECK</h3><div className={`telegram-status ${readyChecks ? "ready" : "warn"}`}>STATUS: {readyChecks ? "TELEGRAM READY" : "OPTIMIZATION ADVISED"}</div><div className="checks"><CheckRow ok={meta.size <= 64 * 1024} label="Komprimovaná velikost" value={formatBytes(meta.size)} hint="LIMIT ≤ 64 KB" /><CheckRow ok={meta.duration <= 3} label="Délka animace" value={`${meta.duration.toFixed(2)} s`} hint="LIMIT ≤ 3 s" /><CheckRow ok={meta.width === 512 && meta.height === 512} label="Plátno" value={`${meta.width} × ${meta.height}`} hint="LIMIT 512 × 512 px" /></div><div className="stat-row"><span><b>{meta.frames}</b>frames</span><span><b>{meta.fps}</b>fps</span><span><b>{meta.duration.toFixed(2)}s</b>duration</span></div></aside></div>}
           </div>
         </section>
         <footer className="footer-bar"><span>SEGA MODE // PIXELART2TGS ENGINE // TEMP FILES PURGED</span><span>© TGS_CONSOLE 199X–2026</span></footer>
