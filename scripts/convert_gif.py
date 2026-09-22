@@ -18,7 +18,9 @@ except ModuleNotFoundError:
     from tgs_validation import sanitize_animation, validate_animation, validate_tgs_file
 
 MIN_SOURCE_SIDE = 32
-SCALE_STEP = 0.9
+# Each size divides the 512px Telegram canvas exactly.  This keeps resized
+# pixel-art edges on whole output pixels instead of introducing soft scaling.
+PIXEL_GRID_SIDES = (512, 256, 128, 64, 32)
 
 
 def normalize_frame_times(value):
@@ -129,15 +131,12 @@ def resize_frame(frame: np.ndarray, maximum_side: int) -> np.ndarray:
 
 
 def candidate_source_sides(frames: list[np.ndarray]):
-    """Yield progressively simpler source resolutions without changing timing."""
-    side = max(max(frame.shape[:2]) for frame in frames)
-    yielded: set[int] = set()
-    while side not in yielded:
-        yielded.add(side)
-        yield side
-        if side <= MIN_SOURCE_SIDE:
-            break
-        side = max(MIN_SOURCE_SIDE, int(math.floor(side * SCALE_STEP)))
+    """Yield the original and then crisp 512px-compatible pixel grids."""
+    original_side = max(max(frame.shape[:2]) for frame in frames)
+    yield original_side
+    for side in PIXEL_GRID_SIDES:
+        if MIN_SOURCE_SIDE <= side < original_side:
+            yield side
 
 
 def create_animation(durations, frames):
