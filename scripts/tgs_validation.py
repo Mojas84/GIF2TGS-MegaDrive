@@ -18,6 +18,9 @@ from typing import Any, Iterable
 MAX_COMPRESSED_BYTES = 64 * 1024
 # Keep a safety margin below the historic one-megabyte TGS parsing boundary.
 MAX_UNCOMPRESSED_BYTES = 1_000_000
+# The supplied Cammy file works with 998 paths, while files around 1,370 paths
+# are rejected by Telegram despite satisfying the published byte limits.
+MAX_SHAPE_PATHS = 950
 CANVAS_SIZE = 512
 FRAME_RATE = 60
 MAX_DURATION_SECONDS = 3
@@ -120,6 +123,12 @@ def validate_animation(animation: Any, *, compressed_bytes: int = 0, uncompresse
     if meta.uncompressed_bytes > MAX_UNCOMPRESSED_BYTES:
         errors.append(
             f"Uncompressed Lottie JSON is {meta.uncompressed_bytes} bytes; safe Telegram compatibility limit is {MAX_UNCOMPRESSED_BYTES} bytes."
+        )
+
+    shape_path_count = sum(1 for item in _walk(animation) if item.get("ty") == "sh")
+    if shape_path_count > MAX_SHAPE_PATHS:
+        errors.append(
+            f"Animation contains {shape_path_count} vector paths; safe Telegram compatibility limit is {MAX_SHAPE_PATHS} paths."
         )
 
     forbidden_counts: dict[str, int] = {}

@@ -5,6 +5,8 @@ import math
 from numbers import Number
 from pathlib import Path
 
+import numpy as np
+from PIL import Image
 from pixelart2tgs.__main__ import open_gif_file, save_tgs
 from pixelart2tgs.lottie_generator import generate_lottie
 
@@ -14,6 +16,9 @@ try:
 except ModuleNotFoundError:
     # Import path when this file is launched directly as a CLI script.
     from tgs_validation import sanitize_animation, validate_animation, validate_tgs_file
+
+MIN_SOURCE_SIDE = 32
+SCALE_STEP = 0.9
 
 
 def normalize_frame_times(value):
@@ -113,8 +118,29 @@ def enrich_original_lottie_defaults(animation):
     return animation
 
 
-def convert(input_path: Path, output_path: Path) -> None:
-    durations, frames = open_gif_file(input_path)
+def resize_frame(frame: np.ndarray, maximum_side: int) -> np.ndarray:
+    """Downscale pixel art only when necessary, preserving hard pixel edges."""
+    height, width = frame.shape[:2]
+    scale = min(1.0, maximum_side / max(width, height))
+    if scale == 1.0:
+        return frame
+    size = (max(1, round(width * scale)), max(1, round(height * scale)))
+    return np.asarray(Image.fromarray(frame).resize(size, Image.Resampling.NEAREST))
+
+
+def candidate_source_sides(frames: list[np.ndarray]):
+    """Yield progressively simpler source resolutions without changing timing."""
+    side = max(max(frame.shape[:2]) for frame in frames)
+    yielded: set[int] = set()
+    while side not in yielded:
+        yielded.add(side)
+        yield side
+        if side <= MIN_SOURCE_SIDE:
+            break
+        side = max(MIN_SOURCE_SIDE, int(math.floor(side * SCALE_STEP)))
+
+
+def create_animation(durations, frames):
     animation = generate_lottie((durations, frames), "SEGA TGS STUDIO")
     animation = normalize_frame_times(animation)
     animation = enrich_original_lottie_defaults(animation)
@@ -126,17 +152,33 @@ def convert(input_path: Path, output_path: Path) -> None:
     animation["fr"] = 60
     animation["ip"] = 0
     animation["op"] = max(1, int(math.ceil(float(animation.get("op", 1)))))
-    _, errors = validate_animation(animation)
-    if errors:
-        raise ValueError("Telegram compatibility check failed: " + " ".join(errors))
-    save_tgs(animation, output_path)
-    _, errors = validate_tgs_file(output_path)
-    if errors:
+    return animation
+
+
+def convert(input_path: Path, output_path: Path) -> None:
+    durations, frames = open_gif_file(input_path)
+    last_errors: list[str] = []
+
+    for maximum_side in candidate_source_sides(frames):
+        candidate_frames = [resize_frame(frame, maximum_side) for frame in frames]
+        animation = create_animation(durations, candidate_frames)
+        _, errors = validate_animation(animation)
+        if errors:
+            last_errors = errors
+            continue
+
+        save_tgs(animation, output_path)
+        _, errors = validate_tgs_file(output_path)
+        if not errors:
+            return
         try:
             output_path.unlink()
         except FileNotFoundError:
             pass
-        raise ValueError("Telegram compatibility check failed: " + " ".join(errors))
+        last_errors = errors
+
+    detail = " ".join(last_errors) or "The source GIF could not be converted into a supported TGS animation."
+    raise ValueError("Telegram compatibility check failed after pixel-preserving simplification: " + detail)
 
 
 def main() -> None:
