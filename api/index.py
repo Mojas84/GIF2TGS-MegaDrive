@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.convert_gif import convert  # noqa: E402
+from scripts.tgs_validation import validate_tgs_file  # noqa: E402
 
 MAX_INPUT_BYTES = 8 * 1024 * 1024
 MAX_OUTPUT_BYTES = 64 * 1024
@@ -35,7 +36,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, X-File-Name")
-        self.send_header("Access-Control-Expose-Headers", "Content-Disposition, X-TGS-Size, X-TGS-FPS, X-TGS-Frames, X-TGS-Duration, X-TGS-Width, X-TGS-Height")
+        self.send_header("Access-Control-Expose-Headers", "Content-Disposition, X-TGS-Size, X-TGS-Raw-Size, X-TGS-FPS, X-TGS-Frames, X-TGS-Duration, X-TGS-Width, X-TGS-Height, X-TGS-Validation")
 
     def do_OPTIONS(self) -> None:  # noqa: N802
         self.send_response(204)
@@ -60,6 +61,9 @@ class handler(BaseHTTPRequestHandler):
             output_path = tempfile.mktemp(suffix=".tgs")
             convert(Path(input_path), Path(output_path))
             output = Path(output_path).read_bytes()
+            metadata, validation_errors = validate_tgs_file(Path(output_path))
+            if validation_errors:
+                raise ValueError("Telegram compatibility check failed: " + " ".join(validation_errors))
             if len(output) > MAX_OUTPUT_BYTES:
                 raise ValueError(f"TGS output is {(len(output) + 1023) // 1024} KB. Telegram allows a maximum of 64 KB; try a shorter or simpler GIF.")
             animation = json.loads(gzip.decompress(output).decode("utf-8"))
@@ -71,11 +75,13 @@ class handler(BaseHTTPRequestHandler):
             self.send_header("Content-Disposition", f'attachment; filename="{safe_filename(self.headers.get("X-File-Name"))}"')
             self.send_header("Content-Length", str(len(output)))
             self.send_header("X-TGS-Size", str(len(output)))
+            self.send_header("X-TGS-Raw-Size", str(metadata.uncompressed_bytes))
             self.send_header("X-TGS-FPS", str(int(fps) if fps.is_integer() else fps))
             self.send_header("X-TGS-Frames", str(frames))
             self.send_header("X-TGS-Duration", f"{frames / fps:.2f}")
             self.send_header("X-TGS-Width", str(animation.get("w", 512)))
             self.send_header("X-TGS-Height", str(animation.get("h", 512)))
+            self.send_header("X-TGS-Validation", "passed")
             self.end_headers()
             self.wfile.write(output)
         except Exception as exc:

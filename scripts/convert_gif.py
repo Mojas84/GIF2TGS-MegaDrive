@@ -8,6 +8,13 @@ from pathlib import Path
 from pixelart2tgs.__main__ import open_gif_file, save_tgs
 from pixelart2tgs.lottie_generator import generate_lottie
 
+try:
+    # Import path when called by the Vercel handler from the project root.
+    from scripts.tgs_validation import sanitize_animation, validate_animation, validate_tgs_file
+except ModuleNotFoundError:
+    # Import path when this file is launched directly as a CLI script.
+    from tgs_validation import sanitize_animation, validate_animation, validate_tgs_file
+
 
 def normalize_frame_times(value):
     if isinstance(value, dict):
@@ -112,10 +119,24 @@ def convert(input_path: Path, output_path: Path) -> None:
     animation = normalize_frame_times(animation)
     animation = enrich_original_lottie_defaults(animation)
     animation = normalize_integer_floats(animation)
+    # pixelart2tgs adds one Merge Paths item to every pixel contour group.
+    # Telegram's TGS specification rejects Merge Paths, and they are redundant
+    # for the converter's closed contours.
+    animation = sanitize_animation(animation)
     animation["fr"] = 60
     animation["ip"] = 0
     animation["op"] = max(1, int(math.ceil(float(animation.get("op", 1)))))
+    _, errors = validate_animation(animation)
+    if errors:
+        raise ValueError("Telegram compatibility check failed: " + " ".join(errors))
     save_tgs(animation, output_path)
+    _, errors = validate_tgs_file(output_path)
+    if errors:
+        try:
+            output_path.unlink()
+        except FileNotFoundError:
+            pass
+        raise ValueError("Telegram compatibility check failed: " + " ".join(errors))
 
 
 def main() -> None:
